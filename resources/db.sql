@@ -14,4 +14,4 @@ CREATE TABLE user(
 
 INSERT INTO user VALUES(1, "vitor", "2easy2guess", "noneyourbusiness@masterhacker.com", "Vitor", "Ferreira", "NoneYourBusinessAgain");
 INSERT INTO user VALUES(2, "socrates", "myCountryIsTheWorld", "master.philosopher@naturalphilosophy.club", "Socrates", "NotPM", "TooOldToHaveOne");
-INSERT INTO user VALUES(3, "Descartes", "cogitoergosum", "thinker@naturalphilosophy.club", "René", "Descartes", "IdkAboutItThusItDoesNotExist");
+INSERT INTO user VALUES(3, "descartes", "cogitoergosum", "thinker@naturalphilosophy.club", "René", "Descartes", "IdkAboutItThusItDoesNotExist");

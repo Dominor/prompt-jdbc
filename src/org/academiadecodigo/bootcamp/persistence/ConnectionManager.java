@@ -18,7 +18,7 @@ public class ConnectionManager {
                 connection = DriverManager.getConnection(Constants.DEFAULT_DB_URL, Constants.DEFAULT_DB_USERNAME, Constants.DEFAULT_DB__PASSWORD);
             }
         } catch (SQLException e) {
-            System.err.println("Failure to connecto to database: "  + e.getMessage());
+            System.err.println("Failure to connect to database: "  + e.getMessage());
         }
         return connection;
     }

@@ -5,7 +5,8 @@ import org.academiadecodigo.bootcamp.controller.MainController;
 import org.academiadecodigo.bootcamp.controller.UserDetailsController;
 import org.academiadecodigo.bootcamp.controller.UserListController;
 import org.academiadecodigo.bootcamp.model.User;
-import org.academiadecodigo.bootcamp.service.MockUserService;
+import org.academiadecodigo.bootcamp.persistence.ConnectionManager;
+import org.academiadecodigo.bootcamp.service.JDBCUserService;
 import org.academiadecodigo.bootcamp.service.UserService;
 import org.academiadecodigo.bootcamp.utils.Security;
 import org.academiadecodigo.bootcamp.view.LoginView;
@@ -27,13 +28,10 @@ public class App {
         UserDetailsView userDetailsView = new UserDetailsView();
         Prompt prompt = new Prompt(System.in, System.out);
 
-        UserService userService = new MockUserService();
-        userService.add(new User("rui", "ferrao@academiadecodigo.org", Security.getHash("academiadecodigo"),
-                "Rui", "Ferrão", "912345678"));
-        userService.add(new User("faustino", "faustino@academiadecodigo.org", Security.getHash("academiadecodigo"),
-                "João", "Faustino", "966666666"));
-        userService.add(new User("audrey", "audrey@academiadecodigo.org", Security.getHash("academiadecodigo"),
-                "Audrey", "Lopes", "934567890"));
+        //UserService userService = new MockUserService();
+        ConnectionManager connectionManager = new ConnectionManager();
+        UserService userService = new JDBCUserService(connectionManager);
+        populateDatabaseWithUsers(userService);
 
         // Wire login controller and view
         loginView.setPrompt(prompt);
@@ -64,6 +62,22 @@ public class App {
 
         // Start APP
         loginController.init();
+        connectionManager.close();
+    }
 
+    private static void populateDatabaseWithUsers(UserService userService) {
+
+        userService.add(new User("rui", "ferrao@academiadecodigo.org", Security.getHash("academiadecodigo"),
+                "Rui", "Ferrão", "912345678"));
+        userService.add(new User("faustino", "faustino@academiadecodigo.org", Security.getHash("academiadecodigo"),
+                "João", "Faustino", "966666666"));
+        userService.add(new User("audrey", "audrey@academiadecodigo.org", Security.getHash("academiadecodigo"),
+                "Audrey", "Lopes", "934567890"));
+        userService.add(new User("vitor", "noneyourbusiness@masterhacker.com", Security.getHash("2easy2guess"),
+                "Vitor", "Ferreira", "NoneYourBusinessAgain"));
+        userService.add(new User("socrates", "master.philosopher@naturalphilosophy.club", Security.getHash("myCountryIsTheWorld"),
+                "Socrates", "NotPM", "TooOldToHaveOne"));
+        userService.add(new User("descartes", "thinker@naturalphilosophy.club", Security.getHash("cogitoergosum"),
+                "René", "Descartes", "IdkAboutItThusItDoesNotExist"));
     }
 }

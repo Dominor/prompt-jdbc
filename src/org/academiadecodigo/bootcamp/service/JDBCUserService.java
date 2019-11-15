@@ -9,19 +9,51 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.List;
 
-public class JDBCUserService implements UserService{
+public class JDBCUserService implements UserService {
+
+    private ConnectionManager connectionManager;
+    private Connection dbConnection;
+
+    public JDBCUserService(ConnectionManager connectionManager) {
+
+        this.connectionManager = connectionManager;
+        dbConnection = connectionManager.getConnection();
+        selectDatabase();
+    }
+
+    private void selectDatabase() {
+
+        try {
+            Statement statement = dbConnection.createStatement();
+            statement.executeQuery(Constants.SELECT_USER_DATABASE);
+
+        } catch (SQLException e) {
+            System.err.println(e.getMessage());
+        }
+    }
 
     @Override
     public boolean authenticate(String username, String password) {
-        User user = findByName(username);
 
-        if (user == null) {
-            return false;
+        try {
+            Statement statement = dbConnection.createStatement();
+            String passwordHash = Security.getHash(password);
+            String query = Constants.GET_CURRENT_USER_CREDENTIALS + "username = \"" + username + "\" AND password = \"" + passwordHash + "\";";
+            ResultSet result = statement.executeQuery(query);
+            if (!result.next()) {
+                return false;
+            }
+            if (username.equals(result.getString("username")) && result.getString("password").equals(passwordHash)) {
+                return true;
+            }
+
+        } catch (SQLException e) {
+            System.err.println(e.getMessage());
         }
-        //return user.getPassword().equals(Security.getHash(password));
-        return user.getPassword().equals(password);
+        return false;
     }
 
     @Override
@@ -31,9 +63,7 @@ public class JDBCUserService implements UserService{
             return;
         }
 
-        ConnectionManager connectionManager = new ConnectionManager();
-        Connection dbConnection = connectionManager.getConnection();
-        if (findByName(user.getUsername()) != null) {
+        if (findByName(user.getUsername()) == null) {
             try {
                 Statement statement = dbConnection.createStatement();
 
@@ -58,8 +88,6 @@ public class JDBCUserService implements UserService{
 
             } catch (SQLException e) {
                 System.err.println(e.getMessage());
-            } finally {
-                connectionManager.close();
             }
         }
     }
@@ -73,17 +101,17 @@ public class JDBCUserService implements UserService{
         String lastNameValue = null;
         String phoneValue = null;
         User user = null;
-        ConnectionManager connectionManager = new ConnectionManager();
-        Connection dbConnection = connectionManager.getConnection();
+
         try {
             Statement statement = dbConnection.createStatement();
 
-            ResultSet resultSet = statement.executeQuery(Constants.GET_USER_BY_USERNAME + username + ";");
+            String query = Constants.GET_USER_BY_USERNAME + "'" + username  + "';";
+            ResultSet resultSet = statement.executeQuery(query);
             if (resultSet.next()) {
                 usernameValue = resultSet.getString("username");
                 passworldValue = resultSet.getString("password");
                 emailValue = resultSet.getString("email");
-                firstNameValue = resultSet.getString("email");
+                firstNameValue = resultSet.getString("firstname");
                 lastNameValue = resultSet.getString("lastname");
                 phoneValue = resultSet.getString("phone");
 
@@ -92,19 +120,45 @@ public class JDBCUserService implements UserService{
 
         } catch (SQLException e) {
             System.err.println("ERROR: Creating SQL statement: " + e.getMessage());
-        } finally {
-            connectionManager.close();
         }
         return user;
     }
 
     @Override
     public List<User> findAll() {
-        return null;
+        List<User> allUsers = new ArrayList<>();
+
+        try {
+            Statement statement = dbConnection.createStatement();
+            ResultSet resultSet;
+            boolean result = statement.execute(Constants.GET_ALL_USERS);
+            if (result) {
+                resultSet = statement.getResultSet();
+                resultSet.next();
+                do {
+                    allUsers.add(new User(resultSet.getString("username"), resultSet.getString("email"),
+                            resultSet.getString("password"), resultSet.getString("firstname"),
+                            resultSet.getString("lastname"), resultSet.getString("phone")));
+                } while (resultSet.next());
+            }
+
+        } catch (SQLException e) {
+            System.err.println(e.getMessage());
+        }
+        return allUsers;
     }
 
     @Override
     public int count() {
-        return 0;
+        int count = 0;
+
+        try {
+            Statement statement = dbConnection.createStatement();
+            count = statement.executeQuery(Constants.GET_TOTAL_USERS).getInt("TotalUsers");
+
+        } catch (SQLException e) {
+            System.err.println(e.getMessage());
+        }
+        return count;
     }
 }
