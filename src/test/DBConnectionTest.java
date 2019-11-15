@@ -1,6 +1,7 @@
 package test;
 
 
+import org.academiadecodigo.bootcamp.common.Constants;
 import org.academiadecodigo.bootcamp.persistence.ConnectionManager;
 import org.junit.Assert;
 import org.junit.Test;
@@ -15,7 +16,7 @@ public class DBConnectionTest {
         ConnectionManager connectionManager = new ConnectionManager();
         Connection connection = connectionManager.getConnection();
 
-        Assert.assertNotNull("Connection failed!", connection);
+        Assert.assertNotNull(Constants.CONNECTION_FAILED, connection);
         connectionManager.close();
     }
 }
