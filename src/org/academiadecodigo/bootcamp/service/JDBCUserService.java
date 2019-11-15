@@ -12,6 +12,12 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * TODO:
+ * - Protect against SQL Injection using prepared statements, see slides. String.Format() can be used as well to insert
+ * unknown values in the middle of strings without doing complicated string concatenations.
+ */
+
 public class JDBCUserService implements UserService {
 
     private ConnectionManager connectionManager;
