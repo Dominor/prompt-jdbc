@@ -5,18 +5,9 @@ import org.academiadecodigo.bootcamp.model.User;
 import org.academiadecodigo.bootcamp.persistence.ConnectionManager;
 import org.academiadecodigo.bootcamp.utils.Security;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-
-/**
- * TODO:
- * - Protect against SQL Injection using prepared statements, see slides. String.Format() can be used as well to insert
- * unknown values in the middle of strings without doing complicated string concatenations.
- */
 
 public class JDBCUserService implements UserService {
 
@@ -45,10 +36,12 @@ public class JDBCUserService implements UserService {
     public boolean authenticate(String username, String password) {
 
         try {
-            Statement statement = dbConnection.createStatement();
             String passwordHash = Security.getHash(password);
-            String query = Constants.GET_CURRENT_USER_CREDENTIALS + "username = \"" + username + "\" AND password = \"" + passwordHash + "\";";
-            ResultSet result = statement.executeQuery(query);
+            String query = Constants.GET_CURRENT_USER_CREDENTIALS;
+            PreparedStatement statement = dbConnection.prepareStatement(query);
+            statement.setString(1, username);
+            statement.setString(2, passwordHash);
+            ResultSet result = statement.executeQuery();
             if (!result.next()) {
                 return false;
             }
@@ -71,23 +64,17 @@ public class JDBCUserService implements UserService {
 
         if (findByName(user.getUsername()) == null) {
             try {
-                Statement statement = dbConnection.createStatement();
 
-                String updateQuery = new StringBuilder(Constants.INSERT_USER_DATA)
-                        .append("\"")
-                        .append(user.getUsername())
-                        .append("\", \"")
-                        .append(user.getPassword())
-                        .append("\", \"")
-                        .append(user.getEmail())
-                        .append("\", \"")
-                        .append(user.getFirstName())
-                        .append("\", \"")
-                        .append(user.getLastName())
-                        .append("\", \"")
-                        .append(user.getPhone())
-                        .append("\");").toString();
-                int rowsAffected = statement.executeUpdate(updateQuery);
+                PreparedStatement statement = dbConnection.prepareStatement(Constants.INSERT_USER_DATA);
+
+                statement.setString(1, user.getUsername());
+                statement.setString(2, user.getPassword());
+                statement.setString(3, user.getEmail());
+                statement.setString(4, user.getFirstName());
+                statement.setString(5, user.getLastName());
+                statement.setString(6, user.getPhone());
+
+                int rowsAffected = statement.executeUpdate();
                 if (rowsAffected != 1) {
                     throw new SQLException("ERROR: Inserting new user record.");
                 }
@@ -109,10 +96,10 @@ public class JDBCUserService implements UserService {
         User user = null;
 
         try {
-            Statement statement = dbConnection.createStatement();
-
-            String query = Constants.GET_USER_BY_USERNAME + "'" + username  + "';";
-            ResultSet resultSet = statement.executeQuery(query);
+            String query = Constants.GET_USER_BY_USERNAME;
+            PreparedStatement statement = dbConnection.prepareStatement(query);
+            statement.setString(1, username);
+            ResultSet resultSet = statement.executeQuery();
             if (resultSet.next()) {
                 usernameValue = resultSet.getString("username");
                 passworldValue = resultSet.getString("password");
